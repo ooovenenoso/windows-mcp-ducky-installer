@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate DuckyScript payloads for safety and basic syntax."""
+"""Validate DuckyScript payloads for hardcoded-only Windows-MCP install."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ ALLOWED_COMMANDS = {
     "REM", "DELAY", "GUI", "STRING", "ENTER", "LEFTARROW", "RIGHTARROW",
     "UPARROW", "DOWNARROW", "CTRL", "ALT", "SHIFT", "TAB", "SPACE",
 }
-SECRET_PATTERNS = [
+REAL_SECRET_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
     re.compile(r"Bearer\s+[A-Za-z0-9._-]{20,}", re.IGNORECASE),
     re.compile(r"https://(?:discord(?:app)?\.com|canary\.discord\.com)/api/webhooks/\d+/[A-Za-z0-9_-]+", re.IGNORECASE),
@@ -31,14 +31,16 @@ def validate_payload(path: Path) -> list[str]:
     lower = text.lower()
     if "authorized" not in lower and "explicit permission" not in lower:
         errors.append(f"{path}: missing authorized-use reminder")
-    if "WINDOWS_MCP_INSTALL_AUTHORIZED" not in text:
-        errors.append(f"{path}: missing explicit authorization environment gate")
-    if "WINDOWS_MCP_DISCORD_WEBHOOK" not in text:
-        errors.append(f"{path}: missing Discord webhook environment variable")
+    if "$webhook =" not in text:
+        errors.append(f"{path}: missing hardcoded $webhook assignment")
+    if "$env:WINDOWS_MCP_DISCORD_WEBHOOK" in text or "WINDOWS_MCP_INSTALL_AUTHORIZED" in text:
+        errors.append(f"{path}: still uses environment-gated webhook/authorization flow")
+    if "PASTE_DISCORD_WEBHOOK_URL_HERE" not in text:
+        errors.append(f"{path}: committed payload should keep a safe hardcoded webhook placeholder")
     if "windows-mcp install" not in text:
         errors.append(f"{path}: missing Windows-MCP install command")
 
-    for pattern in SECRET_PATTERNS:
+    for pattern in REAL_SECRET_PATTERNS:
         if pattern.search(text):
             errors.append(f"{path}: possible embedded secret or real Discord webhook URL")
 
@@ -67,7 +69,7 @@ def main() -> int:
             print(f"- {error}", file=sys.stderr)
         return 1
 
-    print(f"Validated {len(PAYLOADS)} payload(s).")
+    print(f"Validated {len(PAYLOADS)} hardcoded payload(s).")
     return 0
 
 
